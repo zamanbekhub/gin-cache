@@ -1,7 +1,8 @@
-package persist
+package memory
 
 import (
 	"errors"
+	"github.com/chenyahui/gin-cache/persist"
 	"reflect"
 	"time"
 
@@ -10,37 +11,40 @@ import (
 
 // MemoryStore local memory cache store
 type MemoryStore struct {
-	Cache *ttlcache.Cache
+	cache *ttlcache.Cache
 }
 
 // NewMemoryStore allocate a local memory store with default expiration
-func NewMemoryStore(defaultExpiration time.Duration) *MemoryStore {
+func NewMemoryStore(defaultExpiration time.Duration, opts ...Option) *MemoryStore {
 	cacheStore := ttlcache.NewCache()
 	_ = cacheStore.SetTTL(defaultExpiration)
 
 	// disable SkipTTLExtensionOnHit default
 	cacheStore.SkipTTLExtensionOnHit(true)
+	for _, opt := range opts {
+		opt(cacheStore)
+	}
 
 	return &MemoryStore{
-		Cache: cacheStore,
+		cache: cacheStore,
 	}
 }
 
 // Set put key value pair to memory store, and expire after expireDuration
 func (c *MemoryStore) Set(key string, value interface{}, expireDuration time.Duration) error {
-	return c.Cache.SetWithTTL(key, value, expireDuration)
+	return c.cache.SetWithTTL(key, value, expireDuration)
 }
 
 // Delete remove key in memory store, do nothing if key doesn't exist
 func (c *MemoryStore) Delete(key string) error {
-	return c.Cache.Remove(key)
+	return c.cache.Remove(key)
 }
 
 // Get key in memory store, if key doesn't exist, return ErrCacheMiss
 func (c *MemoryStore) Get(key string, value interface{}) error {
-	val, err := c.Cache.Get(key)
+	val, err := c.cache.Get(key)
 	if errors.Is(err, ttlcache.ErrNotFound) {
-		return ErrCacheMiss
+		return persist.ErrCacheMiss
 	}
 
 	v := reflect.ValueOf(value)

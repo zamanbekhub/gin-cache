@@ -2,18 +2,18 @@ package main
 
 import (
 	"fmt"
+	"github.com/chenyahui/gin-cache/persist/memory"
 	"sync/atomic"
 	"time"
 
 	cache "github.com/chenyahui/gin-cache"
-	"github.com/chenyahui/gin-cache/persist"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	app := gin.New()
 
-	memoryStore := persist.NewMemoryStore(1 * time.Minute)
+	memoryStore := memory.NewMemoryStore(1 * time.Minute)
 
 	var cacheHitCount, cacheMissCount int32
 	app.GET("/hello",

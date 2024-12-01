@@ -2,6 +2,7 @@ package cache
 
 import (
 	"fmt"
+	"github.com/chenyahui/gin-cache/persist/memory"
 	"math/rand"
 	"net/http"
 	"net/http/httptest"
@@ -10,7 +11,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/chenyahui/gin-cache/persist"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -41,7 +41,7 @@ func mockHttpRequest(middleware gin.HandlerFunc, url string, withRand bool) *htt
 }
 
 func TestCacheByRequestPath(t *testing.T) {
-	memoryStore := persist.NewMemoryStore(1 * time.Minute)
+	memoryStore := memory.NewMemoryStore(1*time.Minute, memory.WithSize(1000))
 	cachePathMiddleware := CacheByRequestPath(memoryStore, 3*time.Second)
 
 	w1 := mockHttpRequest(cachePathMiddleware, "/cache?uid=u1", true)
@@ -56,7 +56,7 @@ func TestCacheByRequestPath(t *testing.T) {
 
 func TestCacheHitMissCallback(t *testing.T) {
 	var cacheHitCount, cacheMissCount int32
-	memoryStore := persist.NewMemoryStore(1 * time.Minute)
+	memoryStore := memory.NewMemoryStore(1 * time.Minute)
 	cachePathMiddleware := CacheByRequestPath(memoryStore, 3*time.Second,
 		WithOnHitCache(func(c *gin.Context) {
 			atomic.AddInt32(&cacheHitCount, 1)
@@ -75,7 +75,7 @@ func TestCacheHitMissCallback(t *testing.T) {
 }
 
 func TestCacheDuration(t *testing.T) {
-	memoryStore := persist.NewMemoryStore(1 * time.Minute)
+	memoryStore := memory.NewMemoryStore(1 * time.Minute)
 	cacheURIMiddleware := CacheByRequestURI(memoryStore, 3*time.Second)
 
 	w1 := mockHttpRequest(cacheURIMiddleware, "/cache?uid=u1", true)
@@ -91,7 +91,7 @@ func TestCacheDuration(t *testing.T) {
 }
 
 func TestCacheByRequestURI(t *testing.T) {
-	memoryStore := persist.NewMemoryStore(1 * time.Minute)
+	memoryStore := memory.NewMemoryStore(1 * time.Minute)
 	cacheURIMiddleware := CacheByRequestURI(memoryStore, 3*time.Second)
 
 	w1 := mockHttpRequest(cacheURIMiddleware, "/cache?uid=u1", true)
@@ -112,7 +112,7 @@ func TestHeader(t *testing.T) {
 
 	_, engine := gin.CreateTestContext(testWriter)
 
-	memoryStore := persist.NewMemoryStore(1 * time.Minute)
+	memoryStore := memory.NewMemoryStore(1 * time.Minute)
 	cacheURIMiddleware := CacheByRequestURI(memoryStore, 3*time.Second)
 
 	engine.Use(func(c *gin.Context) {
@@ -142,7 +142,7 @@ func TestHeader(t *testing.T) {
 }
 
 func TestConcurrentRequest(t *testing.T) {
-	memoryStore := persist.NewMemoryStore(1 * time.Minute)
+	memoryStore := memory.NewMemoryStore(1 * time.Minute)
 	cacheURIMiddleware := CacheByRequestURI(memoryStore, 1*time.Second)
 
 	wg := sync.WaitGroup{}
@@ -164,7 +164,7 @@ func TestConcurrentRequest(t *testing.T) {
 }
 
 func TestWriteHeader(t *testing.T) {
-	memoryStore := persist.NewMemoryStore(1 * time.Minute)
+	memoryStore := memory.NewMemoryStore(1 * time.Minute)
 	cacheURIMiddleware := CacheByRequestURI(memoryStore, 1*time.Second)
 
 	testWriter := httptest.NewRecorder()
@@ -200,7 +200,7 @@ func TestGetRequestUriIgnoreQueryOrder(t *testing.T) {
 }
 
 func TestCacheByRequestURIIgnoreOrder(t *testing.T) {
-	memoryStore := persist.NewMemoryStore(1 * time.Minute)
+	memoryStore := memory.NewMemoryStore(1 * time.Minute)
 	cacheURIMiddleware := CacheByRequestURI(memoryStore, 3*time.Second, IgnoreQueryOrder())
 
 	w1 := mockHttpRequest(cacheURIMiddleware, "/cache?uid=u1&a=2", true)
@@ -221,7 +221,7 @@ func TestCacheByRequestURIIgnoreOrder(t *testing.T) {
 const prefixKey = "#prefix#"
 
 func TestPrefixKey(t *testing.T) {
-	memoryStore := persist.NewMemoryStore(1 * time.Minute)
+	memoryStore := memory.NewMemoryStore(1 * time.Minute)
 	cachePathMiddleware := CacheByRequestPath(
 		memoryStore,
 		3*time.Second,
@@ -242,7 +242,7 @@ func TestPrefixKey(t *testing.T) {
 func TestWithDiscardHeaders(t *testing.T) {
 	const headerKey = "RandKey"
 
-	memoryStore := persist.NewMemoryStore(1 * time.Minute)
+	memoryStore := memory.NewMemoryStore(1 * time.Minute)
 	cachePathMiddleware := CacheByRequestPath(
 		memoryStore,
 		3*time.Second,
@@ -276,7 +276,7 @@ func TestWithDiscardHeaders(t *testing.T) {
 }
 
 func TestCustomCacheStrategy(t *testing.T) {
-	memoryStore := persist.NewMemoryStore(1 * time.Minute)
+	memoryStore := memory.NewMemoryStore(1 * time.Minute)
 	cacheMiddleware := Cache(
 		memoryStore,
 		24*time.Hour,
@@ -296,7 +296,7 @@ func TestCustomCacheStrategy(t *testing.T) {
 
 func TestCacheByRequestURICustomCacheStrategy(t *testing.T) {
 	const customKey = "CustomKey"
-	memoryStore := persist.NewMemoryStore(1 * time.Minute)
+	memoryStore := memory.NewMemoryStore(1 * time.Minute)
 	cacheURIMiddleware := CacheByRequestURI(memoryStore, 1*time.Second, WithCacheStrategyByRequest(func(c *gin.Context) (bool, Strategy) {
 		return true, Strategy{
 			CacheKey:      customKey,

@@ -1,10 +1,10 @@
 package main
 
 import (
+	redis2 "github.com/chenyahui/gin-cache/persist/redis"
 	"time"
 
 	"github.com/chenyahui/gin-cache"
-	"github.com/chenyahui/gin-cache/persist"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 )
@@ -12,7 +12,7 @@ import (
 func main() {
 	app := gin.New()
 
-	redisStore := persist.NewRedisStore(redis.NewClient(&redis.Options{
+	redisStore := redis2.NewRedisStore(redis.NewClient(&redis.Options{
 		Network: "tcp",
 		Addr:    "127.0.0.1:6379",
 	}))

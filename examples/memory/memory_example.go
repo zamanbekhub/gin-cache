@@ -1,17 +1,17 @@
 package main
 
 import (
+	"github.com/chenyahui/gin-cache/persist/memory"
 	"time"
 
 	"github.com/chenyahui/gin-cache"
-	"github.com/chenyahui/gin-cache/persist"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	app := gin.New()
 
-	memoryStore := persist.NewMemoryStore(1 * time.Minute)
+	memoryStore := memory.NewMemoryStore(1 * time.Minute)
 
 	app.GET("/hello",
 		cache.CacheByRequestURI(memoryStore, 2*time.Second),

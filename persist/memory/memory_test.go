@@ -1,6 +1,7 @@
-package persist
+package memory
 
 import (
+	"github.com/chenyahui/gin-cache/persist"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
@@ -19,5 +20,5 @@ func TestMemoryStore(t *testing.T) {
 	assert.Equal(t, expectVal, value)
 
 	time.Sleep(1 * time.Second)
-	assert.Equal(t, ErrCacheMiss, memoryStore.Get("test", &value))
+	assert.Equal(t, persist.ErrCacheMiss, memoryStore.Get("test", &value))
 }
